@@ -5,6 +5,7 @@
 // Learn more about theming and how to use it for your application's
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@import url('arcaea-toolbelt-core/styles/colors.css');
 
 html {
   @include mat.theme((
@@ -37,3 +38,66 @@ body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+/* Custom shared styles */
+button[mat-fab] {
+  position: fixed;
+  --fab-gap: 1.5em;
+  bottom: var(--fab-gap);
+  &.left {
+    left: var(--fab-gap);
+  }
+  &.right {
+    right: var(--fab-gap);
+  }
+}
+
+img.jacket {
+	display: inline-block;
+  width: 4em;
+  height: 4em;
+	&.border {
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 0.5em;
+    &.pst {
+      border-color: var(--pst-border-color);
+    }
+    &.prs {
+      border-color: var(--prs-border-color);
+    }
+    &.ftr {
+      border-color: var(--ftr-border-color);
+    }
+    &.byd {
+      border-color: var(--byd-border-color);
+    }
+    &.etr {
+      border-color: var(--etr-border-color);
+    }
+  }
+}

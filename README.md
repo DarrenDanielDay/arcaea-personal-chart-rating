@@ -1,4 +1,10 @@
-# ArcaeaPersonalChartRating
+# Arcaea Personal Chart Rating
+
+[Arcaea](https://arcaea.lowiro.com/)个人定数表生成器。
+
+以下为开发相关。
+
+---
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.4.
 
