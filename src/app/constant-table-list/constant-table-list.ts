@@ -26,6 +26,11 @@ import {
 import { PersonalConstantTable } from '../core/models';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import {
+  AssetsPreference,
+  SettingsService,
+} from '../core/services/settings-service';
 
 @Component({
   selector: 'app-constant-table-list',
@@ -38,6 +43,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
+    MatCheckboxModule,
     MatTableModule,
     MatButton,
     MatIconModule,
@@ -46,6 +52,9 @@ import { MatIconModule } from '@angular/material/icon';
   template: `
     <div>
       <h2>本地存档列表</h2>
+      <button class="left" mat-fab (click)="openSettings()">
+        <mat-icon>settings</mat-icon>
+      </button>
       <button class="right" mat-fab (click)="openCreate()">
         <mat-icon>add</mat-icon>
       </button>
@@ -90,6 +99,20 @@ import { MatIconModule } from '@angular/material/icon';
         <button matButton (click)="context.create()">确认</button>
       </mat-dialog-actions>
     </ng-template>
+    <ng-template #settingsForm let-context>
+      <h2 mat-dialog-title>设置</h2>
+      <mat-dialog-content>
+        <div>
+          <mat-checkbox [(ngModel)]="context.settings.useYurisaki">
+            使用Yurisaki资源
+          </mat-checkbox>
+        </div>
+      </mat-dialog-content>
+      <mat-dialog-actions>
+        <button matButton (click)="context.close()">取消</button>
+        <button matButton (click)="context.save()">确认</button>
+      </mat-dialog-actions>
+    </ng-template>
   `,
   styles: `
   `,
@@ -97,6 +120,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class ConstantTableList implements OnInit {
   readonly dialog = inject(MatDialog);
   readonly store = inject(ConstantTableStore);
+  readonly settings = inject(SettingsService);
   readonly title = model('');
   readonly tables = signal<PersonalConstantTable[] | null>(null);
 
@@ -104,6 +128,8 @@ export class ConstantTableList implements OnInit {
 
   readonly createForm =
     viewChild.required<TemplateRef<{ data: any }>>('createForm');
+  readonly settingsForm =
+    viewChild.required<TemplateRef<{ data: any }>>('settingsForm');
 
   ngOnInit(): void {
     this.fetchList();
@@ -155,6 +181,33 @@ export class ConstantTableList implements OnInit {
       });
       await this.fetchList();
     });
+  }
+
+  openSettings() {
+    const settings = {
+      useYurisaki: signal(
+        this.settings.getAssetsPreference() === AssetsPreference.Yurisaki
+      ),
+    };
+    const dialogRef = this.dialog.open<any, any, CreateParams>(
+      this.settingsForm(),
+      {
+        data: {
+          settings,
+          close() {
+            dialogRef.close();
+          },
+          save: () => {
+            this.settings.setAssetsPreference(
+              settings.useYurisaki()
+                ? AssetsPreference.Yurisaki
+                : AssetsPreference.EnvironmentVendor
+            );
+            dialogRef.close();
+          },
+        },
+      }
+    );
   }
 
   async remove(table: PersonalConstantTable) {

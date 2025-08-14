@@ -10,6 +10,10 @@ import { WebDataProvider } from 'arcaea-toolbelt-data/lib/provider.js';
 import { ASSETS_PROVIDER, DATA_PROVIDER } from './core/services/providers';
 import { YurisakiService } from './core/services/yurisaki-service';
 import { ArcaeaToolbeltDataService } from './core/services/arcaea-toolbelt-data-service';
+import {
+  AssetsPreference,
+  SettingsService,
+} from './core/services/settings-service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,8 +28,16 @@ export const appConfig: ApplicationConfig = {
     },
     {
       provide: ASSETS_PROVIDER,
-      // useFactory: () => new YurisakiService(),
-      useFactory: () => new ArcaeaToolbeltDataService(),
+      deps: [SettingsService],
+      useFactory: (settings: SettingsService) => {
+        switch (settings.getAssetsPreference()) {
+          case AssetsPreference.Yurisaki:
+            return new YurisakiService();
+          case AssetsPreference.EnvironmentVendor:
+          default:
+            return new ArcaeaToolbeltDataService();
+        }
+      },
     },
     provideRouter(routes, withHashLocation()),
   ],
