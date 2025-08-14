@@ -1,4 +1,3 @@
-import html2canvas from 'html2canvas';
 import {
   Component,
   ElementRef,
@@ -265,7 +264,8 @@ export class ConstantTable {
     if (!el) return;
     try {
       this.loading.set(true);
-      const canvas = await html2canvas(el.nativeElement, {
+      const html2canvas = await import("html2canvas");
+      const canvas = await html2canvas.default(el.nativeElement, {
         useCORS: true,
       });
       const blob = await new Promise<Blob>((resolve, reject) => {
