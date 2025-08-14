@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { DATA_PROVIDER } from './providers';
-import { Difficulty, difficulties } from 'arcaea-toolbelt-core/constants';
-import { Chart, DataKind, EntityFactory } from 'arcaea-toolbelt-core/models';
+import { Difficulty } from 'arcaea-toolbelt-core/constants';
+import { Chart, EntityFactory } from 'arcaea-toolbelt-core/models';
 import { Nullable } from 'pragmatism';
 
 export interface ChartsQuery {

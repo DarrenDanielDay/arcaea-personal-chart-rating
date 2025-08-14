@@ -15,8 +15,6 @@ import {
   chartName,
   ChartViewModel,
   ConstantTableViewModel,
-  createPersonalConstantTable,
-  PersonalConstantTable,
   SortingChartViewModel,
 } from '../core/models';
 import { ConstantTableStore } from '../core/services/constant-table-store';
@@ -32,8 +30,6 @@ import {
 } from '../candidates-panel/candidates-panel';
 import { DataService } from '../core/services/data-service';
 import { clone, Nullable } from 'pragmatism/core';
-import { Chart } from 'arcaea-toolbelt-core/models';
-import { ASSETS_PROVIDER } from '../core/services/providers';
 import { ChartCard } from '../chart-card/chart-card';
 import { SharedService } from '../core/services/shared-service';
 import { MatFormFieldModule } from '@angular/material/form-field';

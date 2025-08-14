@@ -22,7 +22,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { ConstantTableViewModel, SortingChartViewModel } from '../core/models';
 import {
   MatDialog,
-  MatDialogContent,
   MatDialogModule,
 } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -31,7 +30,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { border, color, colorPointInterpolation } from '../utils/misc';
+import { border, colorPointInterpolation } from '../utils/misc';
 
 type ToModels<T> = {
   [K in keyof T]-?: WritableSignal<T[K]>;
