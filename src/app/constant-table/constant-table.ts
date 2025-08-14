@@ -45,7 +45,6 @@ interface ConstantTableSettings extends ToModels<GroupConstantOptions> {
 const easy = '#55ff55';
 const normal = '#ffff55';
 const hard = '#ff5555';
-const out = '#cccccc';
 
 @Component({
   selector: 'app-constant-table',
@@ -89,6 +88,11 @@ const out = '#cccccc';
       <mat-icon>settings</mat-icon>
     </button>
     <table #constantTable class="table">
+      <thead>
+        <tr class="title">
+          <th colspan="2">{{table.table.title}}</th>
+        </tr>
+      </thead>
       <tbody>
         @if(shared.grouped(simulated.list, {fixed: settings.fixed(), ascending:
         settings.ascending()}); as groups) { @for (group of groups; track
@@ -188,7 +192,10 @@ const out = '#cccccc';
     table {
       border-collapse: collapse;
     }
-    .group {
+    .title {
+      height: 3em;
+    }
+    th, .group {
       border: 1px grey solid;
     }
     .constant {
