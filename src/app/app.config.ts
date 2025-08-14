@@ -19,7 +19,7 @@ export const appConfig: ApplicationConfig = {
       provide: DATA_PROVIDER,
       useFactory: () =>
         new WebDataProvider(
-          import.meta.env.NG_APP_ARCAEA_TOOLBELT_DATA ?? import.meta.url
+          _NGX_ENV_.NG_APP_ARCAEA_TOOLBELT_DATA ?? import.meta.url
         ),
     },
     {

@@ -4,7 +4,7 @@ import { Chart } from 'arcaea-toolbelt-core/models';
 import { bundled, songsBase } from 'arcaea-toolbelt-core/assets';
 
 songsBase.set(
-  `${new URL(import.meta.env.NG_APP_ASSETS_VENDOR ?? '').origin}/${songsBase()}`
+  `${new URL(`../${songsBase()}`, _NGX_ENV_.NG_APP_ASSETS_VENDOR)}`
 );
 
 @Injectable()
