@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   inject,
   signal,
   TemplateRef,
@@ -64,16 +65,23 @@ import { FormsModule } from '@angular/forms';
     </app-nav-back>
     @if (table(); as table) {
     <div class="list" cdkDropList (cdkDropListDropped)="drop($event)">
-      @for (vm of table.sorting(); track vm.chart.id) {
+      @if (table.sorting(); as sorting) { @if(sorting.length) { @for (vm of
+      sorting; track vm.chart.id; let i = $index) {
       <div class="item" cdkDrag [cdkDragData]="vm">
         <div class="handle" cdkDragHandle>
           <mat-icon>drag_indicator</mat-icon>
         </div>
         <app-chart-card [chart]="vm.chart"></app-chart-card>
         <div class="actions">
+          @if (inserting()) {
+          <button matIconButton (click)="completeInsert(i)">
+            <mat-icon>keyboard_double_arrow_down</mat-icon>
+          </button>
+          } @else {
           <button matIconButton (click)="remove(vm)">
             <mat-icon>delete</mat-icon>
           </button>
+          }
           <button matIconButton (click)="togglePin(vm)">
             <span class="material-symbols-outlined">{{
               vm.isPinned ? 'keep_off' : 'keep'
@@ -84,15 +92,34 @@ import { FormsModule } from '@angular/forms';
           </button>
         </div>
       </div>
-      }
+      } } @else {
+      <p>
+        暂无谱面。使用右下角按钮添加谱面到候选谱面。使用左下角按钮打开候选谱面，并选择插入到排序列表中。
+      </p>
+      } }
     </div>
+    @if (insertingChart(); as chart) {
+    <div class="inserting-list">
+      <div class="item">
+        <div class="handle">
+          <mat-icon>pending_actions</mat-icon>
+        </div>
+        <app-chart-card [chart]="chart"></app-chart-card>
+        <div class="actions">
+          <button matIconButton (click)="cancelInsert()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    } @else {
     <button class="right" mat-fab (click)="add()">
       <mat-icon>add</mat-icon>
     </button>
     <button class="left" mat-fab (click)="showList()">
       <mat-icon>list</mat-icon>
     </button>
-    } @else if (table() === null) {
+    } } @else if (table() === null) {
     <p>未知的个人定数表id。</p>
     }
     <ng-template #askConstantForm let-context>
@@ -129,8 +156,10 @@ import { FormsModule } from '@angular/forms';
     }
 
     .list {
-      max-width: 100%;
       max-height: calc(100vh - 16em);
+    }
+    .list, .inserting-list {
+      max-width: 100%;
       border: solid 1px #ccc;
       min-height: 60px;
       display: block;
@@ -182,6 +211,14 @@ import { FormsModule } from '@angular/forms';
 })
 export class ConstantSortingTable {
   protected table = signal<Nullable<ConstantTableViewModel>>(undefined);
+  protected inserting = signal<Nullable<string>>(null);
+  protected insertingChart = computed<Nullable<ChartViewModel>>(() => {
+    const id = this.inserting();
+    if (id == null) return null;
+    const vm = this.table();
+    if (vm == null) return null;
+    return vm.included().find((c) => c.id === id) ?? null;
+  });
   protected data = inject(DataService);
   protected dialog = inject(MatDialog);
   protected sheet = inject(MatBottomSheet);
@@ -284,16 +321,37 @@ export class ConstantSortingTable {
     sheetRef.afterDismissed().subscribe((selected) => {
       if (!selected) return;
       if (!Array.isArray(selected)) {
-        // TODO select insert position, now append to head
-        table.ordered.update((ordered) => {
-          ordered = clone(ordered);
-          return [selected, ...ordered];
-        });
+        if (!table.ordered().length) {
+          table.ordered.update((ordered) => [selected, ...ordered]);
+          this.saveTable();
+        } else {
+          this.inserting.set(selected);
+        }
       } else {
         table.ordered.update((ordered) => [...selected, ...ordered]);
       }
       this.saveTable();
     });
+  }
+
+  completeInsert(index: number) {
+    const id = this.inserting();
+    if (id == null) return;
+    const table = this.table();
+    if (!table) return;
+    if (table.ordered().includes(id)) return;
+    if (table.included().every((c) => c.id !== id)) return;
+    table.ordered.update((ordered) => [
+      ...ordered.slice(0, index + 1),
+      id,
+      ...ordered.slice(index + 1),
+    ]);
+    this.inserting.set(null);
+    this.saveTable();
+  }
+
+  cancelInsert() {
+    this.inserting.set(null);
   }
 
   async saveTable() {
