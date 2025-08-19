@@ -23,7 +23,7 @@ import {
   ConstantTableStore,
   CreateParams,
 } from '../core/services/constant-table-store';
-import { PersonalConstantTable } from '../core/models';
+import { isPersonalConstantTable, PersonalConstantTable } from '../core/models';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -31,6 +31,8 @@ import {
   AssetsPreference,
   SettingsService,
 } from '../core/services/settings-service';
+import { FileDownload, FileDownloadData } from '../file-download/file-download';
+import { formatJSON, Nullable } from 'pragmatism/core';
 
 @Component({
   selector: 'app-constant-table-list',
@@ -77,6 +79,7 @@ import {
               <mat-icon>more_vert</mat-icon>
             </button>
             <mat-menu #actionMenu>
+              <button mat-menu-item (click)="export(el)">导出存档</button>
               <button mat-menu-item (click)="openEdit(el)">修改标题</button>
               <button mat-menu-item (click)="remove(el)">删除</button>
             </mat-menu>
@@ -91,12 +94,27 @@ import {
       <mat-dialog-content>
         <mat-form-field>
           <mat-label>标题</mat-label>
-          <input matInput [(ngModel)]="context.models.title" />
+          <input matInput id="title" [(ngModel)]="context.models.title" />
         </mat-form-field>
+        @if (context.isCreate) {
+        <div>
+          <label for="file"> 导入存档文件数据（可选） </label>
+          <input
+            #importFile
+            type="file"
+            (input)="context.models.file.set(importFile.files?.item(0))"
+          />
+        </div>
+        }
       </mat-dialog-content>
       <mat-dialog-actions>
         <button matButton (click)="context.close()">取消</button>
-        <button matButton (click)="context.create()">确认</button>
+        <button
+          matButton
+          (click)="context.isCreate ? context.create() : context.edit()"
+        >
+          确认
+        </button>
       </mat-dialog-actions>
     </ng-template>
     <ng-template #settingsForm let-context>
@@ -115,6 +133,27 @@ import {
     </ng-template>
   `,
   styles: `
+    label[for='file'] {
+      display: inline-block;
+      margin: 0 0 0.5em 0;
+    }
+    input[type='file'] {
+      width: 212px;
+      cursor: pointer;
+      display: block;
+      font-size: 1em;
+      line-height: 1.5em;
+      border: 1px solid #cccccc;
+      &::-webkit-file-upload-button {
+        padding: 0.375rem 0.75rem;
+        background-color: var(--mat-sys-surface-container);
+        pointer-events: none;
+        border-color: inherit;
+        border-style: solid;
+        border-width: 0;
+        border-radius: 0;
+      }
+    }
   `,
 })
 export class ConstantTableList implements OnInit {
@@ -140,23 +179,46 @@ export class ConstantTableList implements OnInit {
     this.tables.set(list);
   }
 
-  openEditor(title: string) {
+  openEditor(title: string, isCreate?: boolean) {
     const models = {
       title: signal(''),
+      file: signal<Nullable<File>>(null),
     };
     const dialogRef = this.dialog.open<any, any, CreateParams>(
       this.createForm(),
       {
         data: {
+          isCreate,
           models,
           title,
           close() {
             dialogRef.close();
           },
-          create() {
+          edit() {
             dialogRef.close({
               title: models.title(),
             });
+          },
+          async create() {
+            const file = models.file();
+            if (!file) {
+              dialogRef.close({
+                title: models.title(),
+              });
+              return;
+            }
+            try {
+              const table = JSON.parse(await file.text());
+              if (!isPersonalConstantTable(table)) {
+                return alert('存档格式不正确。');
+              }
+              dialogRef.close({
+                ...table,
+                title: models.title(),
+              });
+            } catch (error) {
+              alert(error);
+            }
           },
         },
       }
@@ -165,7 +227,7 @@ export class ConstantTableList implements OnInit {
   }
 
   openCreate() {
-    this.openEditor('创建个人定数表存档').subscribe(async (params) => {
+    this.openEditor('创建个人定数表存档', true).subscribe(async (params) => {
       if (!params) return;
       await this.store.create(params);
       await this.fetchList();
@@ -220,6 +282,17 @@ export class ConstantTableList implements OnInit {
 
   edit(table: PersonalConstantTable) {
     return `edit/${table.id}`;
+  }
+
+  export(table: PersonalConstantTable) {
+    const blob = new Blob([formatJSON(table)], { type: 'application/json' });
+    this.dialog.open<FileDownload, FileDownloadData, void>(FileDownload, {
+      data: {
+        blob,
+        filename: `${table.title}.json`,
+        title: `导出存档：${table.title}`,
+      },
+    });
   }
 
   result(table: PersonalConstantTable) {

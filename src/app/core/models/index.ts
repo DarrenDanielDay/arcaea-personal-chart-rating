@@ -1,6 +1,12 @@
 import { computed, signal } from '@angular/core';
 import { Difficulty } from 'arcaea-toolbelt-core/constants';
-import { notnull, Nullable } from 'pragmatism';
+import {
+  isNumber,
+  isObjectLike,
+  isString,
+  notnull,
+  Nullable,
+} from 'pragmatism/core';
 
 export interface ChartViewModel {
   id: string;
@@ -132,4 +138,33 @@ export function createPersonalConstantTable(): PersonalConstantTable {
     pinned: [],
     title: '',
   };
+}
+
+// TODO describe object shape
+export function isPersonalConstantTable(
+  value: unknown
+): value is PersonalConstantTable {
+  return (
+    isObjectLike(value) &&
+    'id' in value &&
+    isString(value.id) &&
+    'title' in value &&
+    isString(value.title) &&
+    'included' in value &&
+    Array.isArray(value.included) &&
+    value.included.every(isString) &&
+    'ordered' in value &&
+    Array.isArray(value.ordered) &&
+    value.ordered.every(isString) &&
+    'pinned' in value &&
+    Array.isArray(value.pinned) &&
+    value.pinned.every(
+      (item): item is PinnedChart =>
+        isObjectLike(item) &&
+        'id' in item &&
+        isString(item.id) &&
+        'designed' in item &&
+        isNumber(item.designed)
+    )
+  );
 }

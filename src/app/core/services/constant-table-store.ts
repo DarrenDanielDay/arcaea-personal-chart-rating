@@ -10,11 +10,9 @@ interface IDBStoreSchema extends DBSchema {
   };
 }
 
-export interface CreateParams
-  extends Omit<
-    PersonalConstantTable,
-    'id' | 'included' | 'ordered' | 'pinned'
-  > {}
+type RequiredCreateParam = Pick<PersonalConstantTable, 'title'>;
+
+export type CreateParams = Partial<PersonalConstantTable> & RequiredCreateParam;
 
 export type EditParams = UpdatePayload<PersonalConstantTable, 'id'>;
 
@@ -41,8 +39,8 @@ export class ConstantTableStore {
     const db = await this.#open();
     await db.put('tables', {
       ...createPersonalConstantTable(),
-      id: Date.now().toString(),
       ...params,
+      id: Date.now().toString(),
     });
     db.close();
   }
